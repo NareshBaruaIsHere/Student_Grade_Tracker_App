@@ -18,9 +18,9 @@ class SummaryScreen extends StatelessWidget {
         children: [
           Text(
             'Result Summary',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
           ),
           const SizedBox(height: 16),
           Card(

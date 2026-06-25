@@ -14,11 +14,7 @@ class HomeScreen extends StatelessWidget {
     final appState = context.watch<AppStateProvider>();
     final colorScheme = Theme.of(context).colorScheme;
 
-    const screens = [
-      AddSubjectScreen(),
-      SubjectListScreen(),
-      SummaryScreen(),
-    ];
+    const screens = [AddSubjectScreen(), SubjectListScreen(), SummaryScreen()];
 
     return Scaffold(
       appBar: AppBar(
@@ -36,10 +32,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: appState.selectedIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: appState.selectedIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: appState.selectedIndex,
         onTap: appState.changeTab,

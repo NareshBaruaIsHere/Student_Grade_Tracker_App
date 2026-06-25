@@ -7,15 +7,17 @@ mark and overall grade.
 ## Features
 
 - 3 screens:
-	- Add Subject
-	- Subject List
-	- Summary
+  - Add Subject
+  - Subject List
+  - Summary
 - Bottom navigation to switch screens
 - Light/Dark theme toggle in AppBar
 - Subject model with private `_mark` field and computed `grade`
 - Provider-based state management for all app state
 - Live summary updates when subjects are added or removed
 - Dismissible list items for swipe-to-delete
+- Full CRUD support (add, view, edit, delete)
+- Local persistence with `shared_preferences` so saved subjects remain after restart
 
 ## Grading Logic
 
@@ -73,4 +75,3 @@ lib/
 - Swipe-to-delete with `Dismissible`
 - Custom light/dark `ThemeData`
 - No `setState` usage (Provider only)
-

@@ -22,24 +22,28 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final mark = int.parse(_markController.text.trim());
 
-    context.read<SubjectProvider>().addSubject(
-          name: _nameController.text,
-          mark: mark,
-        );
+    await context.read<SubjectProvider>().addSubject(
+      name: _nameController.text,
+      mark: mark,
+    );
+
+    if (!mounted) {
+      return;
+    }
 
     _nameController.clear();
     _markController.clear();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Subject added successfully')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Subject added successfully')));
   }
 
   @override
@@ -55,9 +59,9 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
           children: [
             Text(
               'Add Subject',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
             ),
             const SizedBox(height: 16),
             TextFormField(
