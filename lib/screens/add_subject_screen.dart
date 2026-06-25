@@ -101,10 +101,7 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
               },
             ),
             const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _submit,
-              child: const Text('Save Subject'),
-            ),
+            FilledButton(onPressed: _submit, child: const Text('Save Subject')),
           ],
         ),
       ),

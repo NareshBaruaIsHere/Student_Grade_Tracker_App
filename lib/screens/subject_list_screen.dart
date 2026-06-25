@@ -1,102 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/subject.dart';
 import '../providers/subject_provider.dart';
 
 class SubjectListScreen extends StatelessWidget {
   const SubjectListScreen({super.key});
 
-  Future<void> _showEditDialog(BuildContext context, int index) async {
-    final subjectProvider = context.read<SubjectProvider>();
-    final subject = subjectProvider.subjects[index];
-
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: subject.name);
-    final markController = TextEditingController(text: subject.mark.toString());
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Edit Subject'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Subject Name'),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Subject name is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: markController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Mark'),
-                  validator: (value) {
-                    final text = value?.trim() ?? '';
-                    if (text.isEmpty) {
-                      return 'Mark is required';
-                    }
-                    final mark = int.tryParse(text);
-                    if (mark == null) {
-                      return 'Mark must be a number';
-                    }
-                    if (mark < 0 || mark > 100) {
-                      return 'Mark must be between 0 and 100';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) {
-                  return;
-                }
-
-                await subjectProvider.updateSubject(
-                  id: subject.id,
-                  name: nameController.text,
-                  mark: int.parse(markController.text.trim()),
-                );
-
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Subject updated')),
-                  );
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        );
-      },
+  Future<void> _openEditScreen(
+    BuildContext pageContext,
+    Subject subject,
+  ) async {
+    final didUpdate = await Navigator.of(pageContext).push<bool>(
+      MaterialPageRoute(builder: (_) => _EditSubjectScreen(subject: subject)),
     );
 
-    nameController.dispose();
-    markController.dispose();
+    if (didUpdate == true && pageContext.mounted) {
+      ScaffoldMessenger.of(
+        pageContext,
+      ).showSnackBar(const SnackBar(content: Text('Subject updated')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final pageContext = context;
     final subjectProvider = context.watch<SubjectProvider>();
     final subjects = subjectProvider.subjects;
     final colorScheme = Theme.of(context).colorScheme;
@@ -133,12 +61,12 @@ class SubjectListScreen extends StatelessWidget {
           onDismissed: (_) async {
             await subjectProvider.deleteSubjectById(subject.id);
 
-            if (!context.mounted) {
+            if (!pageContext.mounted) {
               return;
             }
 
             ScaffoldMessenger.of(
-              context,
+              pageContext,
             ).showSnackBar(SnackBar(content: Text('Deleted ${subject.name}')));
           },
           child: Card(
@@ -153,7 +81,7 @@ class SubjectListScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   IconButton(
-                    onPressed: () => _showEditDialog(context, index),
+                    onPressed: () => _openEditScreen(pageContext, subject),
                     icon: const Icon(Icons.edit_outlined),
                     tooltip: 'Edit Subject',
                   ),
@@ -163,6 +91,108 @@ class SubjectListScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _EditSubjectScreen extends StatefulWidget {
+  const _EditSubjectScreen({required this.subject});
+
+  final Subject subject;
+
+  @override
+  State<_EditSubjectScreen> createState() => _EditSubjectScreenState();
+}
+
+class _EditSubjectScreenState extends State<_EditSubjectScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _markController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.subject.name);
+    _markController = TextEditingController(
+      text: widget.subject.mark.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _markController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updateSubject() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    await context.read<SubjectProvider>().updateSubject(
+      id: widget.subject.id,
+      name: _nameController.text,
+      mark: int.parse(_markController.text.trim()),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Edit Subject')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Subject Name'),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Subject name is required';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _markController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Mark'),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) {
+                    return 'Mark is required';
+                  }
+                  final mark = int.tryParse(text);
+                  if (mark == null) {
+                    return 'Mark must be a number';
+                  }
+                  if (mark < 0 || mark > 100) {
+                    return 'Mark must be between 0 and 100';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: _updateSubject,
+                child: const Text('Save Changes'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
